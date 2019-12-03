@@ -1,0 +1,11 @@
+[worker]
+192.168.11.22
+192.168.11.21
+[master]
+192.168.11.20
+
+
+[all:vars]
+ansible_ssh_port=22
+ansible_ssh_user=pi
+ansible_ssh_pass=raspberry

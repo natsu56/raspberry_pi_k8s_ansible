@@ -1,0 +1,9 @@
+- name: get docker.sh
+  get_url: 
+    url: https://get.docker.com
+    dest: /etc/get-docker.sh
+    force: true
+- name: run docker.sh
+  command: /etc/get-docker.sh
+- name: run usermod
+  command: usermod -aG docker pi

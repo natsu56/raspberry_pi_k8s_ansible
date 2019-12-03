@@ -1,0 +1,6 @@
+- name: master
+  hosts: master
+  become: yes
+  roles:
+    - docker
+    - kubernetes
