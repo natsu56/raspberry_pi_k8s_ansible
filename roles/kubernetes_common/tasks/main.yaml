@@ -1,0 +1,36 @@
+- name: init
+  shell: |
+    dphys-swapfile swapoff && 
+    dphys-swapfile uninstall && 
+    update-rc.d dphys-swapfile remove && 
+    apt remove -y dphys-swapfile &&
+    apt install -y iptables arptables ebtables &&
+    update-alternatives --set iptables /usr/sbin/iptables-legacy &&
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy  &&
+    update-alternatives --set arptables /usr/sbin/arptables-legacy &&
+    update-alternatives --set ebtables /usr/sbin/ebtables-legacy
+
+- name: reboot!
+  shell: sleep 5 && reboot
+  async: 1
+  poll: 0
+
+- name: wait for reboot
+  wait_for_connection:
+    delay: 30
+    timeout: 300
+
+- name: add k8s key
+  shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+- name: add repository
+  shell: echo deb https://apt.kubernetes.io/ kubernetes-xenial main > /etc/apt/sources.list.d/kubernetes.list
+- name: apt update
+  shell: apt update
+- name: apt
+  apt:
+      name: "{{ packages }}"
+  vars:
+    packages:
+      - kubeadm
+      - kubectl
+    state: present

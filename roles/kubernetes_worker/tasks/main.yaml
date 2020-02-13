@@ -1,0 +1,12 @@
+- name: check kubeadm is install
+  shell: dpkg-query -l | grep kubeadm
+  register: result
+  failed_when: result.rc not in [0, 1]
+  
+- name: kubeadm reset
+  shell: yes 'y' | kubeadm reset && ip link delete cni0 && ip link delete flannel.1
+  when: result.rc == 0
+  ignore_errors: yes
+
+- name: kubeadm set token
+  shell: "{{ hostvars[groups[\"master\"][0]][\"kubeadm_token\"][\"stdout\"] }}"
