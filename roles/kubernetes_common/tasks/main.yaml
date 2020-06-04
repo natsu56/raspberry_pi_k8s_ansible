@@ -1,3 +1,8 @@
+- name: whether init is complete
+  shell: which dphys-swapfile
+  register: init_completed
+  failed_when: init_completed.rc not in [0, 1]
+
 - name: init
   shell: |
     dphys-swapfile swapoff && 
@@ -9,16 +14,28 @@
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy  &&
     update-alternatives --set arptables /usr/sbin/arptables-legacy &&
     update-alternatives --set ebtables /usr/sbin/ebtables-legacy
+  when: init_completed.rc==0
+
+- name: Does the cgroup setting exist in cmdline.txt
+  shell: grep cgroup_enable -rl /boot/cmdline.txt
+  register: is_exist_cgoup
+  failed_when: is_exist_cgoup.rc not in [0, 1]
+
+- name:  is write cgroup settings to cmdline.txt
+  shell: sed -i -e 's/$/ cgroup_enable=cpuset cgroup_enable=memory/' /boot/cmdline.txt
+  when: is_exist_cgoup.rc == 1
 
 - name: reboot!
   shell: sleep 5 && reboot
   async: 1
   poll: 0
+  when: init_completed.rc ==0
 
 - name: wait for reboot
   wait_for_connection:
     delay: 30
     timeout: 300
+  when: init_completed.rc ==0
 
 - name: add k8s key
   shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -

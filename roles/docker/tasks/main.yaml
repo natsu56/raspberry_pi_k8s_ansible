@@ -1,9 +1,13 @@
+- name: check docker is install
+  shell: dpkg-query -W docker
+  register: result
+  failed_when: result.rc > 1
 - name: get docker.sh
-  get_url: 
-    url: https://get.docker.com
-    dest: /etc/get-docker.sh
-    force: true
+  shell: curl https://get.docker.com -o /tmp/get-docker.sh
+  when: result.rc == 1
 - name: run docker.sh
-  command: /etc/get-docker.sh
+  command: sh /tmp/get-docker.sh
+  when: result.rc == 1
 - name: run usermod
   command: usermod -aG docker pi
+  when: result.rc == 1
