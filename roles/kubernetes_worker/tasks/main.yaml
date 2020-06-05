@@ -2,9 +2,22 @@
   shell: ip link | grep flannel.1
   register: setuped
   failed_when: setuped.rc not in [0, 1]
+
+- name: deleted ip link flannel.1
+  shell: ip link delete flannel.1
+  when: setuped.rc == 0
+ 
+- name: checked ip link cni0
+  shell: ip link | grep cni0
+  register: setuped_cni0
+  failed_when: setuped_cni0.rc not in [0, 1]
+
+- name: deleted ip link cni0
+  shell: ip link delete cni0
+  when: setuped_cni0.rc == 0
  
 - name: kubeadm reset
-  shell: yes 'y' | kubeadm reset && ip link delete flannel.1
+  shell: yes 'y' | kubeadm reset
   when: setuped.rc == 0
 
 - name: kubeadm set token
